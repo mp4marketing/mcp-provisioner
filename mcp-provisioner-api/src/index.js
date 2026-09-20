@@ -18,6 +18,7 @@ import {
   approveProvisioningRequest,
   rejectProvisioningRequest,
   insertRevokeRequest,
+  listProvisioningQueue,
   listUsers,
   listGrants,
 } from './routes.js';
@@ -84,6 +85,10 @@ export default {
           const row = await insertRevokeRequest(q, { userId: revokeMatch[1], requestedBy: actingAdminUserId });
           return json(row, 201);
         });
+      }
+
+      if (request.method === 'GET' && pathname === '/provisioning') {
+        return await withClient(buildConnectionString(env), async (q) => json(await listProvisioningQueue(q)));
       }
 
       if (request.method === 'GET' && pathname === '/users') {

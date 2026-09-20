@@ -4,6 +4,7 @@ import {
   approveProvisioningRequest,
   rejectProvisioningRequest,
   insertRevokeRequest,
+  listProvisioningQueue,
   listUsers,
   listGrants,
   QUEUE_TABLE,
@@ -108,6 +109,18 @@ describe('listUsers / listGrants', () => {
     await listGrants(query);
     const [sql, params] = query.mock.calls[0];
     expect(sql).not.toContain('user_id = $1');
+    expect(params).toBeUndefined();
+  });
+});
+
+describe('listProvisioningQueue', () => {
+  it('scopes to pending/approved rows only, newest first', async () => {
+    const query = vi.fn().mockResolvedValue([]);
+    await listProvisioningQueue(query);
+    const [sql, params] = query.mock.calls[0];
+    expect(sql).toContain(`FROM ${QUEUE_TABLE}`);
+    expect(sql).toContain("status IN ('pending', 'approved')");
+    expect(sql).toContain('ORDER BY created_at DESC');
     expect(params).toBeUndefined();
   });
 });

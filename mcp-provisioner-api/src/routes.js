@@ -83,6 +83,27 @@ export async function insertRevokeRequest(query, { userId, requestedBy }) {
   return rows[0];
 }
 
+/**
+ * GET /provisioning -- lists pending/approved rows so access-admin can
+ * actually render an approve/reject affordance for a distinct second admin.
+ *
+ * REAL GAP FOUND 2026-09-20: doc 18 Workstream D.2's original route
+ * inventory never included this -- without it, the admin who submitted a
+ * request has no way to hand its id to a second admin except manually
+ * copy-pasting it out of band, which isn't a workable UI. Added the same
+ * way access-admin's own `access.pending_actions` needed a `GET
+ * /pending-actions` list route for its identical UI need.
+ */
+export async function listProvisioningQueue(query) {
+  return query(
+    `SELECT id, action_type, user_id, tenant_markers, tier, status, requested_by, approved_by,
+            approved_at, cooldown_deadline, self_approved_after_cooldown, created_at, processed_at
+       FROM ${QUEUE_TABLE}
+      WHERE status IN ('pending', 'approved')
+      ORDER BY created_at DESC`
+  );
+}
+
 /** GET /users -- everyone with a live 'mcp' product row. */
 export async function listUsers(query) {
   return query(
