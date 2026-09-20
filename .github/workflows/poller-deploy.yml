@@ -39,6 +39,23 @@ jobs:
       NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # `supabase functions deploy`'s Deno-based bundler cannot reliably
+      # resolve a PRIVATE npm package during deploy (confirmed live
+      # 2026-09-20, identical failure shape to mcp-postgres-relay's own:
+      # "npm package '@mp4marketing/mcp-provisioning' does not exist" --
+      # same real, currently-unfixed upstream bug, supabase/cli#4927, closed
+      # "not planned"). Sidestepped the same way -- see
+      # scripts/vendor-shared-packages.mjs -- by installing both private
+      # deps as ordinary npm dependencies (real npm DOES authenticate
+      # against npm.pkg.github.com correctly) and copying their source in
+      # as plain relative files the function imports instead of `npm:`
+      # specifiers. postgres@3.4.4's own npm: import is unaffected -- public
+      # registry, not subject to this bug.
+      - run: npm install
+      - run: npm run vendor
       - uses: supabase/setup-cli@v1
         with:
           version: latest

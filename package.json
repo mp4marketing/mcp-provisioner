@@ -3,9 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "vendor": "node scripts/vendor-shared-packages.mjs"
   },
   "dependencies": {
-    "@mp4marketing/mcp-provisioning": "^0.1.0"
+    "@mp4marketing/mcp-provisioning": "^0.1.0",
+    "@mp4marketing/dual-control": "^0.1.0"
   }
 }

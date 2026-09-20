@@ -14,6 +14,13 @@
 // body, a connection string, a password, or any error object that could
 // serialize either.
 import postgres from "npm:postgres@3.4.4";
+// Relative imports, NOT `npm:@mp4marketing/...` -- see
+// scripts/vendor-shared-packages.mjs for why (the same real, unfixed Deno/
+// Supabase CLI bug documented in mcp-postgres-relay's vendor script:
+// `functions deploy` cannot reliably resolve PRIVATE npm packages).
+// These files are generated/vendored, not hand-written -- never edit
+// directly, bump the version in package.json's dependencies and re-run
+// `npm run vendor`.
 import {
   TENANT_REGISTRY_SELECT,
   normalizeRegistryRows,
@@ -22,8 +29,8 @@ import {
   provisionPrincipal,
   deprovisionPrincipal,
   quoteRoleName,
-} from "npm:@mp4marketing/mcp-provisioning@0.1.0";
-import { claimApprovedRows, markProcessed, markStale } from "npm:@mp4marketing/dual-control@0.1.0";
+} from "../_shared/mcp-provisioning/index.js";
+import { claimApprovedRows, markProcessed, markStale } from "../_shared/dual-control.js";
 import { computeCurrentMarkers, markersMatch, deriveSlugsFromMarkers } from "../_shared/marker-logic.js";
 
 const QUEUE_TABLE = "mcp_admin.provisioning_queue";
