@@ -12,6 +12,17 @@
 	// Same "internal-only" shape as reporting-hub/apps/admin's wrangler.jsonc
 	// (reporting-hub-admin). Never give this a public URL; it holds the
 	// queue-write path for MCP principal provisioning.
+	//
+	// REAL GAP FOUND AND CLOSED 2026-09-20: "no routes/no custom domain"
+	// alone does NOT make a Worker unreachable -- Cloudflare's default
+	// *.workers.dev subdomain stays enabled unless explicitly turned off.
+	// First deploy landed with a real, public, guessable-but-live URL
+	// (confirmed via curl: HTTP 401, not a timeout -- i.e. actually
+	// reachable, Supabase auth just rejected the unsigned request).
+	// reporting-hub-admin, the Worker this internal-only shape was copied
+	// from, has the SAME gap (verified live the same way) -- flagged
+	// separately, not fixed here (different repo).
+	"workers_dev": false,
 	"vars": {
 		"SUPABASE_SESSION_POOLER_HOST": "aws-0-us-west-2.pooler.supabase.com",
 		"SUPABASE_PROJECT_REF": "svjemxaceebvuutpoixk"
