@@ -1,0 +1,11 @@
+{
+  "name": "mcp-provisioner",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@mp4marketing/mcp-provisioning": "^0.1.0"
+  }
+}

@@ -1,0 +1,40 @@
+name: mcp-provisioner-api CI
+
+on:
+  push:
+    branches: [main]
+    paths: ["mcp-provisioner-api/**", ".github/workflows/api-ci.yml"]
+  pull_request:
+    branches: [main]
+    paths: ["mcp-provisioner-api/**", ".github/workflows/api-ci.yml"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mcp-provisioner-api
+    permissions:
+      contents: read
+      packages: read
+    env:
+      # Automatic, workflow-scoped token -- never a manually-managed PAT.
+      # Requires this repo to be on @mp4marketing/dual-control's "Manage
+      # Actions access" allowlist (one-time, org-owner-only grant -- see the
+      # root CLAUDE.md for why there's no API for it), even though both
+      # repos are public: GitHub Packages requires auth to install a
+      # package regardless of the source repo's visibility.
+      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install
+      - run: npm test
+
+  # Deploy is deliberately NOT wired here yet -- no Cloudflare API token is
+  # configured for this repo at the time this workflow was written. Deploy
+  # manually with `wrangler deploy` from mcp-provisioner-api/ until a
+  # CLOUDFLARE_API_TOKEN secret is added, then add a deploy job mirroring
+  # this pattern (test-gated, push-to-main only).

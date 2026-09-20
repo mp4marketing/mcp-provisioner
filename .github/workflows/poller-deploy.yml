@@ -1,0 +1,53 @@
+name: mcp-provisioner-poller test and deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    env:
+      # Same mechanism as mcp-postgres-relay's deploy.yml -- automatic,
+      # workflow-scoped token, never a manually-managed PAT. Requires this
+      # repo to be on BOTH @mp4marketing/mcp-provisioning's and
+      # @mp4marketing/dual-control's "Manage Actions access" allowlists
+      # (one-time, org-owner-only grant per package -- root CLAUDE.md).
+      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install
+      - run: npm test
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      # Deliberately WITHOUT --no-verify-jwt -- unlike mcp-postgres-relay
+      # (which has its own X-Relay-Auth scheme independent of this gate),
+      # this function has NO auth scheme of its own at all: its only
+      # legitimate caller is pg_cron/pg_net, authenticating with the
+      # service_role key against exactly this platform gate. Do not add
+      # --no-verify-jwt without also adding a real auth mechanism first.
+      - run: supabase functions deploy mcp-provisioner-poller --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}

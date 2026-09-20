@@ -1,0 +1,29 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "mcp-provisioner-api",
+	"main": "src/index.js",
+	"compatibility_date": "2026-09-19",
+	"compatibility_flags": ["nodejs_compat"],
+	"observability": {
+		"enabled": true
+	},
+	// Deliberately NO "routes"/"route" and no custom domain -- this Worker is
+	// reachable ONLY via a Cloudflare Service Binding, from access-admin.
+	// Same "internal-only" shape as reporting-hub/apps/admin's wrangler.jsonc
+	// (reporting-hub-admin). Never give this a public URL; it holds the
+	// queue-write path for MCP principal provisioning.
+	"vars": {
+		"SUPABASE_SESSION_POOLER_HOST": "aws-0-us-west-2.pooler.supabase.com",
+		"SUPABASE_PROJECT_REF": "svjemxaceebvuutpoixk"
+	}
+	// Secrets (wrangler secret put, never committed):
+	//   MCP_PROVISIONER_API_DB_PASSWORD -- mcp_provisioner_api's Postgres
+	//     password, set via the migrations/mcp-provisioner/002 bootstrap
+	//     step (see that file's trailing note -- printed once, pasted here,
+	//     never committed).
+	//   MCP_PROVISIONER_SHARED_SECRET -- deliberately a DIFFERENT value from
+	//     access-admin's ACCESS_ADMIN_SHARED_SECRET (doc 18 D.2's reasoning:
+	//     what a leak of this one buys is role-creation-adjacent queue
+	//     writes, not an ordinary row write). access-admin needs the same
+	//     value as its own MCP_PROVISIONER_SHARED_SECRET copy.
+}
