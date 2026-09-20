@@ -27,9 +27,24 @@ jobs:
       NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+      # registry-url/scope here (not a committed .npmrc) -- REAL BUG found
+      # live 2026-09-20: npm's project-config .npmrc lookup is CWD-only, it
+      # does NOT walk up to ancestor directories the way git config does.
+      # This job's `defaults.run.working-directory: mcp-provisioner-api`
+      # put every `run:` step one level below the repo-root .npmrc that
+      # used to be this job's only auth source, so npm never saw it at all
+      # in CI (confirmed: "authentication token not provided", i.e. no
+      # scope/token config found, not merely a bad token -- verified by
+      # reproducing the same failure locally only once a leftover global
+      # ~/.npmrc from an unrelated earlier session was excluded). These
+      # inputs make actions/setup-node write to ~/.npmrc instead, which npm
+      # DOES always consult regardless of cwd -- same proven-working
+      # pattern as access-admin's own ci.yml.
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@mp4marketing"
       - run: npm install
       - run: npm test
 
